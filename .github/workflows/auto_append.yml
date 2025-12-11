@@ -1,0 +1,49 @@
+name: Auto Append Hai
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # setiap 10 menit
+  workflow_dispatch:         # bisa manual run
+
+jobs:
+  append:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Append new line to CSV
+      run: |
+        python - << 'EOF'
+import pandas as pd
+import os
+
+file = "data.csv"
+
+# Load or create CSV
+if not os.path.exists(file):
+    df = pd.DataFrame({"message": []})
+else:
+    df = pd.read_csv(file)
+
+# Append new message
+new_msg = f"hai {len(df) + 1}"
+df.loc[len(df)] = [new_msg]
+
+df.to_csv(file, index=False)
+print("Appended:", new_msg)
+EOF
+
+    - name: Commit & Push changes
+      run: |
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git add data.csv
+        git commit -m "Append new hai entry" || echo "No changes to commit"
+        git push
