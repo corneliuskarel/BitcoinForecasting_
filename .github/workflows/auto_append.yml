@@ -2,8 +2,8 @@ name: Auto Append
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # setiap 10 menit
-  workflow_dispatch:          # bisa dijalankan manual dari Streamlit
+    - cron: "*/10 * * * *"     # setiap 10 menit
+  workflow_dispatch:            # manual trigger dari Streamlit
 
 jobs:
   append:
@@ -40,7 +40,6 @@ EOF
       run: |
         git config --global user.email "github-actions@github.com"
         git config --global user.name "GitHub Actions"
-
         git add data.csv
-        git commit -m "Auto append"
+        git commit -m "Auto append" || echo "No changes"
         git push
