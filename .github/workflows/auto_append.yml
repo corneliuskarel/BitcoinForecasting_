@@ -18,8 +18,9 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install deps
+    - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install pandas
 
     - name: Append new line to CSV
@@ -41,5 +42,5 @@ EOF
         git config --global user.email "github-actions@github.com"
         git config --global user.name "GitHub Actions"
         git add data.csv
-        git commit -m "Auto append" || echo "No changes to commit"
+        git diff --cached --quiet || git commit -m "Auto append"
         git push
