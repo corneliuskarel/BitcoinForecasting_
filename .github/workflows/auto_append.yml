@@ -1,14 +1,14 @@
-name: Auto Append Hai
+name: Auto Append
 
 on:
   schedule:
     - cron: "*/10 * * * *"   # setiap 10 menit
-  workflow_dispatch:         # bisa manual run
+  workflow_dispatch:          # bisa dijalankan manual dari Streamlit
 
 jobs:
   append:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
@@ -18,32 +18,29 @@ jobs:
       with:
         python-version: "3.10"
 
+    - name: Install deps
+      run: |
+        pip install pandas
+
     - name: Append new line to CSV
       run: |
         python - << 'EOF'
 import pandas as pd
-import os
 
-file = "data.csv"
-
-# Load or create CSV
-if not os.path.exists(file):
-    df = pd.DataFrame({"message": []})
-else:
-    df = pd.read_csv(file)
-
-# Append new message
+df = pd.read_csv("data.csv")
 new_msg = f"hai {len(df) + 1}"
-df.loc[len(df)] = [new_msg]
 
-df.to_csv(file, index=False)
+df.loc[len(df)] = [new_msg]
+df.to_csv("data.csv", index=False)
+
 print("Appended:", new_msg)
 EOF
 
-    - name: Commit & Push changes
+    - name: Commit changes
       run: |
-        git config user.name "github-actions"
-        git config user.email "actions@github.com"
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "GitHub Actions"
+
         git add data.csv
-        git commit -m "Append new hai entry" || echo "No changes to commit"
+        git commit -m "Auto append"
         git push
