@@ -1,41 +1,38 @@
 import streamlit as st
 import pandas as pd
 import requests
+import base64
 
 st.title("Auto-Append Demo (GitHub Actions → Streamlit)")
 
 RAW_URL = "https://raw.githubusercontent.com/corneliuskarel/BitcoinForecasting_/main/data.csv"
-REPO = "corneliuskarel/BitcoinForecasting_"
-WORKFLOW = "auto_append.yml"
 
-st.subheader("🔹 Current CSV Content from GitHub")
+st.subheader("Current CSV content")
+df = pd.read_csv(RAW_URL)
+st.dataframe(df)
 
-try:
-    df = pd.read_csv(RAW_URL, on_bad_lines="skip")
-    st.dataframe(df)
-except Exception as e:
-    st.error(f"Gagal membaca CSV: {e}")
+st.divider()
+st.subheader("Run GitHub Actions Manually")
 
-st.subheader("🔹 Trigger manual append (workflow_dispatch)")
+if "GH_TOKEN" not in st.secrets:
+    st.error("❌ GH_TOKEN not found in Streamlit Secrets!")
+else:
+    GH_TOKEN = st.secrets["GH_TOKEN"]
 
-if st.button("Run cronjob sekarang"):
-    try:
-        token = st.secrets["GH_TOKEN"]  # PAT disimpan di Streamlit secrets
-        url = f"https://api.github.com/repos/{REPO}/actions/workflows/{WORKFLOW}/dispatches"
-
+    if st.button("🚀 Run Append Workflow Now"):
         headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}"
+            "Authorization": f"Bearer {GH_TOKEN}",
         }
+
+        url = "https://api.github.com/repos/corneliuskarel/BitcoinForecasting_/actions/workflows/auto_append.yml/dispatches"
 
         payload = {"ref": "main"}
 
-        r = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload)
 
-        if r.status_code == 204:
-            st.success("Workflow berhasil dijalankan!")
+        if response.status_code == 204:
+            st.success("✅ Workflow triggered successfully!")
         else:
-            st.error(f"Error trigger: {r.text}")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
+            st.error(f"❌ Error: {response.status_code}")
+            st.code(response.text)
