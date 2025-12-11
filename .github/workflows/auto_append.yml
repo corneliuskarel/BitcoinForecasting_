@@ -35,6 +35,7 @@ df.loc[len(df)] = [new_msg]
 df.to_csv("data.csv", index=False)
 
 print("Appended:", new_msg)
+print("Done")
 EOF
 
     - name: Commit changes
